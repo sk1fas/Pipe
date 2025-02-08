@@ -29,6 +29,8 @@ install_dependencies() {
 
 # Вывод приветственного текста с помощью figlet
 
+# Вывод приветственного текста с помощью figlet
+
 echo "===================================================================================================================================="
 echo "Хай! Начинаем установку необходимых библиотек, пока подпишись на мой Telegram для обновлений и поддержки: "
 echo ""
@@ -67,7 +69,7 @@ install_node() {
     cd ~/pipe
 
     # Скачиваем файл pop
-    wget https://dl.pipecdn.app/v0.2.2/pop
+    wget https://dl.pipecdn.app/v0.2.3/pop
 
     # Делаем файл исполнимым
     chmod +x pop
@@ -114,6 +116,42 @@ check_points() {
     cd ..
 }
 
+update_node() {
+    echo -e "${BLUE}Обновление до версии 0.2.3...${NC}"
+
+    # Остановка процесса pop
+    echo -e "${YELLOW}Останавливаем службу pipe-pop...${NC}"
+    ps aux | grep '[p]op' | awk '{print $2}' | xargs kill
+
+    # Переход в директорию pipe
+    cd ~/pipe
+
+    # Удаление старой версии pop
+    echo -e "${YELLOW}Удаляем старую версию pop...${NC}"
+    rm -f pop
+
+    # Скачивание новой версии pop
+    echo -e "${YELLOW}Скачиваем новую версию pop...${NC}"
+    wget -O pop "https://dl.pipecdn.app/v0.2.3/pop"
+
+    # Делаем файл исполнимым
+    chmod +x pop
+
+    # Перезагрузка системных служб
+    sudo systemctl daemon-reload
+
+    # Завершаем сессию screen с именем 'pipe2', если она существует
+    screen -S pipe2 -X quit
+    sleep 2
+
+    # Перезапуск сессии screen с именем 'pipe2' и запуск pop
+    screen -S pipe2 -dm ./pop
+    sleep 3
+    screen -S pipe2 -X stuff "y\n"
+
+    echo -e "${GREEN}Обновление завершено!${NC}"
+}
+
 # Функция для удаления ноды
 remove_node() {
     echo -e "${BLUE}Удаляем ноду...${NC}"
@@ -136,7 +174,8 @@ CHOICE=$(whiptail --title "Меню действий" \
     "2" "Проверка статуса ноды" \
     "3" "Проверка поинтов ноды" \
     "4" "Удаление ноды" \
-    "5" "Выход" \
+    "5" "Обновление ноды" \
+    "6" "Выход" \
     3>&1 1>&2 2>&3)
 
 case $CHOICE in
@@ -153,6 +192,9 @@ case $CHOICE in
         remove_node
         ;;
     5)
+        update_node
+        ;;
+    6)
         echo -e "${CYAN}Выход из программы.${NC}"
         ;;
     *)
